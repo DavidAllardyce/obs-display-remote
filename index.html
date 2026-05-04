@@ -23,17 +23,23 @@
     <style>
         /* Prevents double-tap zooming on mobile for faster tapping */
         button { touch-action: manipulation; }
+        .pulse-red { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans">
 
     <!-- Header -->
-    <header class="bg-gray-800 p-4 shadow-md flex justify-between items-center">
+    <header class="bg-gray-800 p-4 shadow-md flex justify-between items-center z-10">
         <h1 class="text-xl font-bold flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor-play"><path d="m10 7 5 3-5 3Z"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
-            Church Display Remote
+            Church Display
         </h1>
-        <div id="statusBadge" class="px-3 py-1 rounded-full text-sm font-semibold bg-red-500/20 text-red-400 border border-red-500/50">
+        <div id="statusBadge" class="px-3 py-1 rounded-full text-sm font-semibold bg-red-500/20 text-red-400 border border-red-500/50 transition-colors">
             Disconnected
         </div>
     </header>
@@ -42,6 +48,7 @@
     <main class="flex-grow p-4 md:p-8 max-w-3xl mx-auto w-full">
         
         <!-- Connection Panel -->
+
         <div id="connectionPanel" class="bg-gray-800 rounded-xl p-6 shadow-lg mb-8 transition-all">
             <h2 class="text-lg font-semibold mb-4 text-gray-300">Connect to OBS</h2>
             <div class="space-y-4">
@@ -64,9 +71,29 @@
             </div>
             <p id="errorMsg" class="text-red-400 text-sm mt-4 hidden text-center"></p>
         </div>
-
+        
         <!-- Scene Controls Panel (Hidden until connected) -->
         <div id="controlsPanel" class="hidden">
+            
+            <!-- Output Controls (Stream / Record / Mute) -->
+             <!--
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+                <button id="streamBtn" class="py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>
+                    <span>Start Stream</span>
+                </button>
+                <button id="recordBtn" class="py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Start Record</span>
+                </button>
+                
+                <button id="muteBtn" class="col-span-2 md:col-span-1 py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                    <span>Mute Output</span>
+                </button>
+            </div>
+            -->
+
             <h2 class="text-xl font-bold mb-4 text-center text-gray-300">Active Scenes</h2>
             <div id="sceneContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Scene buttons will be injected here by JS -->
@@ -100,6 +127,7 @@
 
     <script>
         const obs = new OBSWebSocket();
+        let manualDisconnect = false;
         
         // UI Elements
         const connectionPanel = document.getElementById('connectionPanel');
@@ -116,6 +144,10 @@
         const monitorSelect = document.getElementById('monitorSelect');
         const projectorMsg = document.getElementById('projectorMsg');
 
+        const streamBtn = document.getElementById('streamBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const muteBtn = document.getElementById('muteBtn');
+
         // Load saved credentials on startup
         window.addEventListener('DOMContentLoaded', () => {
             const savedAddress = localStorage.getItem('obsAddress');
@@ -126,7 +158,7 @@
 
         // Helper to update status badge
         function setStatus(status) {
-            statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold border';
+            statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold border transition-colors';
             if (status === 'connected') {
                 statusBadge.textContent = 'Connected';
                 statusBadge.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
@@ -144,15 +176,34 @@
             }
         }
 
-        // Fetch scenes and build buttons
-        async function loadScenes() {
+        // Output Status Handlers
+        function updateStreamUI(active) {
+            if (active) {
+                streamBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg><span>Stop Stream</span>';
+                streamBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-red-500 bg-red-600 text-white pulse-red flex flex-col items-center justify-center gap-1 text-sm';
+            } else {
+                streamBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg><span>Start Stream</span>';
+                streamBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm';
+            }
+        }
+
+        function updateRecordUI(active) {
+            if (active) {
+                recordBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg><span>Stop Record</span>';
+                recordBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-red-500 bg-red-600 text-white pulse-red flex flex-col items-center justify-center gap-1 text-sm';
+            } else {
+                recordBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg><span>Start Record</span>';
+                recordBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm';
+            }
+        }
+
+        // Fetch outputs and scenes
+        async function loadInitialState() {
             try {
                 const { scenes } = await obs.call('GetSceneList');
                 const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
                 
                 sceneContainer.innerHTML = ''; // Clear container
-                
-                // Reverse the array if you want top-to-bottom OBS order to display left-to-right/top-to-bottom
                 scenes.reverse().forEach(scene => {
                     const btn = document.createElement('button');
                     const isActive = scene.sceneName === currentProgramSceneName;
@@ -163,14 +214,19 @@
                             : 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600 hover:border-gray-500'}`;
                     
                     btn.textContent = scene.sceneName;
-                    
-                    // Add click event to switch scene
                     btn.onclick = () => switchScene(scene.sceneName);
-                    
                     sceneContainer.appendChild(btn);
                 });
+
+                // Load initial output statuses
+                const streamStatus = await obs.call('GetStreamStatus');
+                updateStreamUI(streamStatus.outputActive);
+                
+                const recordStatus = await obs.call('GetRecordStatus');
+                updateRecordUI(recordStatus.outputActive);
+
             } catch (err) {
-                console.error("Failed to load scenes", err);
+                console.error("Failed to load initial state", err);
             }
         }
 
@@ -178,7 +234,6 @@
         async function switchScene(sceneName) {
             try {
                 await obs.call('SetCurrentProgramScene', { sceneName: sceneName });
-                // We don't need to manually update UI here because we listen to 'CurrentProgramSceneChanged'
             } catch (err) {
                 console.error("Failed to switch scene", err);
             }
@@ -193,64 +248,88 @@
                 monitors.forEach(monitor => {
                     const option = document.createElement('option');
                     option.value = monitor.monitorIndex;
-                    // Displays Name or Resolution (e.g. Index 1: 1920x1080)
                     const displayName = monitor.monitorName || `${monitor.monitorWidth}x${monitor.monitorHeight}`;
                     option.textContent = `Index ${monitor.monitorIndex}: ${displayName}`;
                     monitorSelect.appendChild(option);
                 });
             } catch (err) {
                 console.error("Failed to load monitors", err);
-                // Fallback if the command fails for some reason
                 monitorSelect.innerHTML = '<option value="0">Monitor 0</option><option value="1">Monitor 1</option>';
             }
         }
 
         // Connect Button Logic
-        connectBtn.addEventListener('click', async () => {
+        function initiateConnection() {
             const address = obsAddressInput.value.trim();
             const password = obsPasswordInput.value;
             
-            // Save credentials for next time the app opens
             localStorage.setItem('obsAddress', address);
             localStorage.setItem('obsPassword', password);
             
             errorMsg.classList.add('hidden');
             setStatus('connecting');
             connectBtn.disabled = true;
+            manualDisconnect = false;
 
-            try {
-                // Ensure ws:// prefix
-                const wsAddress = address.startsWith('ws://') ? address : `ws://${address}`;
-                await obs.connect(wsAddress, password, { rpcVersion: 1 });
+            const wsAddress = address.startsWith('ws://') ? address : `ws://${address}`;
+            
+            obs.connect(wsAddress, password, { rpcVersion: 1 }).then(() => {
                 setStatus('connected');
-                await loadScenes();
-                await loadMonitors();
-            } catch (error) {
+                loadInitialState();
+                loadMonitors();
+                connectBtn.disabled = false;
+            }).catch(error => {
                 console.error('Connection Error:', error);
                 setStatus('disconnected');
                 errorMsg.textContent = error.message || "Failed to connect. Check IP, Port, and Password.";
                 errorMsg.classList.remove('hidden');
-            } finally {
                 connectBtn.disabled = false;
-            }
-        });
+            });
+        }
+
+        connectBtn.addEventListener('click', initiateConnection);
 
         // Disconnect Button Logic
         disconnectBtn.addEventListener('click', () => {
+            manualDisconnect = true; // Prevents auto-reconnect
             obs.disconnect();
+        });
+
+        // Output Button Listeners
+        streamBtn.addEventListener('click', async () => {
+            try { await obs.call('ToggleStream'); } catch (e) { console.error(e); }
+        });
+        
+        recordBtn.addEventListener('click', async () => {
+            try { await obs.call('ToggleRecord'); } catch (e) { console.error(e); }
+        });
+
+        muteBtn.addEventListener('click', async () => {
+            // Gets all audio inputs and mutes them as a panic button
+            try {
+                const { inputs } = await obs.call('GetInputList');
+                inputs.forEach(async (input) => {
+                    await obs.call('SetInputMute', { inputName: input.inputName, inputMuted: true });
+                });
+                muteBtn.classList.replace('bg-gray-800', 'bg-red-900');
+                muteBtn.classList.replace('border-gray-600', 'border-red-500');
+                muteBtn.querySelector('span').textContent = 'All Muted!';
+                setTimeout(() => {
+                    muteBtn.classList.replace('bg-red-900', 'bg-gray-800');
+                    muteBtn.classList.replace('border-red-500', 'border-gray-600');
+                    muteBtn.querySelector('span').textContent = 'Mute Output';
+                }, 2000);
+            } catch (e) { console.error(e); }
         });
 
         // Projector Button Logic
         projectorBtn.addEventListener('click', async () => {
             const monitorIndex = parseInt(monitorSelect.value, 10);
-            
             try {
-                // Opens the Program (live output) projector on the specified monitor
                 await obs.call('OpenVideoMixProjector', {
                     videoMixType: 'OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM',
                     monitorIndex: monitorIndex
                 });
-                
                 projectorMsg.textContent = `Projector launched on monitor ${monitorIndex}!`;
                 projectorMsg.className = "text-sm text-center mt-2 text-green-400";
                 projectorMsg.classList.remove('hidden');
@@ -266,19 +345,27 @@
         // OBS Event Listeners
         obs.on('ConnectionClosed', () => {
             setStatus('disconnected');
+            // Auto-Reconnect Logic
+            if (!manualDisconnect && localStorage.getItem('obsAddress')) {
+                console.log("Connection lost. Attempting to auto-reconnect in 5 seconds...");
+                setTimeout(() => {
+                    if (statusBadge.textContent === 'Disconnected') {
+                        initiateConnection();
+                    }
+                }, 5000);
+            }
         });
 
-        obs.on('CurrentProgramSceneChanged', (event) => {
-            // Re-render buttons to highlight the new active scene
-            loadScenes();
+        obs.on('CurrentProgramSceneChanged', () => {
+            if (statusBadge.textContent === 'Connected') loadInitialState();
         });
 
         obs.on('SceneListChanged', () => {
-            // If someone adds/removes a scene in OBS, update the remote
-            if (statusBadge.textContent === 'Connected') {
-                loadScenes();
-            }
+            if (statusBadge.textContent === 'Connected') loadInitialState();
         });
+
+        obs.on('StreamStateChanged', (data) => updateStreamUI(data.outputActive));
+        obs.on('RecordStateChanged', (data) => updateRecordUI(data.outputActive));
 
     </script>
 </body>
