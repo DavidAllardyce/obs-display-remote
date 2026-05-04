@@ -2,8 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Church OBS Remote</title>
+    
+    <!-- PWA / Home Screen App Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OBS Remote">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1f2937">
+    
+    <!-- App Icons (Generated as inline SVGs) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='20' height='14' x='2' y='3' rx='2'/%3E%3Cpath d='M8 21h8m-4-4v4m-2-11 5 3-5 3z'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231f2937' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='24' height='24' x='0' y='0' fill='%231f2937' stroke='none'/%3E%3Crect width='20' height='14' x='2' y='3' rx='2'/%3E%3Cpath d='M8 21h8m-4-4v4m-2-11 5 3-5 3z'/%3E%3C/svg%3E">
+
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- OBS WebSocket JS Library (v5) -->
@@ -104,6 +116,14 @@
         const monitorSelect = document.getElementById('monitorSelect');
         const projectorMsg = document.getElementById('projectorMsg');
 
+        // Load saved credentials on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedAddress = localStorage.getItem('obsAddress');
+            const savedPassword = localStorage.getItem('obsPassword');
+            if (savedAddress) obsAddressInput.value = savedAddress;
+            if (savedPassword) obsPasswordInput.value = savedPassword;
+        });
+
         // Helper to update status badge
         function setStatus(status) {
             statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold border';
@@ -189,6 +209,10 @@
         connectBtn.addEventListener('click', async () => {
             const address = obsAddressInput.value.trim();
             const password = obsPasswordInput.value;
+            
+            // Save credentials for next time the app opens
+            localStorage.setItem('obsAddress', address);
+            localStorage.setItem('obsPassword', password);
             
             errorMsg.classList.add('hidden');
             setStatus('connecting');
