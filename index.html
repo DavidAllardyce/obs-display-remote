@@ -31,13 +31,13 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans select-none">
 
     <!-- Header -->
-    <header class="bg-gray-800 p-4 shadow-md flex justify-between items-center z-10">
-        <h1 class="text-xl font-bold flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor-play"><path d="m10 7 5 3-5 3Z"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
-            Church Display
+    <header class="bg-gray-800 p-4 shadow-md flex justify-between items-center z-10 border-b border-gray-700">
+        <h1 class="text-xl font-bold flex items-center gap-2 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor-play text-blue-400"><path d="m10 7 5 3-5 3Z"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+            Church OBS Remote
         </h1>
         <div id="statusBadge" class="px-3 py-1 rounded-full text-sm font-semibold bg-red-500/20 text-red-400 border border-red-500/50 transition-colors">
             Disconnected
@@ -48,77 +48,89 @@
     <main class="flex-grow p-4 md:p-8 max-w-3xl mx-auto w-full">
         
         <!-- Connection Panel -->
-
-        <div id="connectionPanel" class="bg-gray-800 rounded-xl p-6 shadow-lg mb-8 transition-all">
-            <h2 class="text-lg font-semibold mb-4 text-gray-300">Connect to OBS</h2>
+        <div id="connectionPanel" class="bg-gray-800 rounded-xl p-6 shadow-lg mb-8 border border-gray-700 transition-all">
+            <h2 class="text-lg font-semibold mb-4 text-gray-200 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                Connect to OBS
+            </h2>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm text-gray-400 mb-1">OBS IP Address & Port</label>
+                    <label class="block text-sm text-gray-300 mb-1">OBS IP Address & Port</label>
                     <input type="text" id="obsAddress" value="192.168.1.X:4455" 
-                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
                         placeholder="e.g. 192.168.1.50:4455">
-                    <p class="text-xs text-gray-500 mt-1">Default port is 4455</p>
+                    <p class="text-xs text-gray-400 mt-1">Default WebSocket port is 4455 (OBS v5+)</p>
                 </div>
                 <div>
-                    <label class="block text-sm text-gray-400 mb-1">WebSocket Password</label>
+                    <label class="block text-sm text-gray-300 mb-1">WebSocket Password</label>
                     <input type="password" id="obsPassword" 
-                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-                        placeholder="Leave blank if no password">
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
+                        placeholder="Leave blank if no password set in OBS">
                 </div>
-                <button id="connectBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                <button id="connectBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg">
                     Connect
                 </button>
             </div>
-            <p id="errorMsg" class="text-red-400 text-sm mt-4 hidden text-center"></p>
+            <p id="errorMsg" class="text-red-400 text-sm mt-4 hidden text-center bg-red-950/40 p-3 rounded border border-red-800/60"></p>
         </div>
         
         <!-- Scene Controls Panel (Hidden until connected) -->
-        <div id="controlsPanel" class="hidden">
+        <div id="controlsPanel" class="hidden space-y-6">
             
-            <!-- Output Controls (Stream / Record / Mute) -->
-             <!--
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-                <button id="streamBtn" class="py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg>
-                    <span>Start Stream</span>
-                </button>
-                <button id="recordBtn" class="py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span>Start Record</span>
-                </button>
-                
-                <button id="muteBtn" class="col-span-2 md:col-span-1 py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                    <span>Mute Output</span>
-                </button>
-            </div>
-            -->
-
-            <h2 class="text-xl font-bold mb-4 text-center text-gray-300">Active Scenes</h2>
-            <div id="sceneContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Scene buttons will be injected here by JS -->
-            </div>
-            
-            <div class="mt-10 border-t border-gray-700 pt-6">
-                <h2 class="text-lg font-semibold mb-4 text-center text-gray-300">Display Options</h2>
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm text-gray-400">Monitor:</label>
-                        <select id="monitorSelect" class="bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:border-blue-500 min-w-[150px]">
-                            <option value="0">Loading...</option>
-                        </select>
-                    </div>
-                    <button id="projectorBtn" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2">
-                        Launch Fullscreen Projector
-                    </button>
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-200 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
+                        Scene Selection
+                    </h2>
+                    <span id="activeSceneLabel" class="text-xs text-gray-400 font-medium">Select a scene to output</span>
                 </div>
-                <p class="text-xs text-gray-500 text-center mt-3">Select the monitor to display the live output.</p>
-                <p id="projectorMsg" class="text-sm text-center mt-2 hidden"></p>
+                
+                <div id="sceneContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Scene buttons injected dynamically -->
+                </div>
+            </div>
+            
+            <!-- Display / Projector Options -->
+            <div class="mt-8 border-t border-gray-700 pt-6">
+                <h2 class="text-lg font-semibold mb-4 text-center text-gray-200 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                    Projector & Monitor Controls
+                </h2>
+                
+                <div class="bg-gray-800 rounded-xl p-5 border border-gray-700 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Target Display / Mode</label>
+                            <select id="monitorSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-purple-500 font-medium">
+                                <option value="-1">Windowed Projector (Window)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Projector Mix Type</label>
+                            <select id="mixTypeSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-purple-500 font-medium">
+                                <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM">Program (Live Output)</option>
+                                <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW">Preview Output</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button id="projectorBtn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        Launch Projector Window
+                    </button>
+                    
+                    <p class="text-xs text-gray-400 text-center">
+                        <span class="text-purple-400 font-semibold">Note:</span> Projector windows launch on the computer running OBS Studio.
+                    </p>
+                    <p id="projectorMsg" class="text-sm text-center font-semibold mt-2 hidden p-2 rounded"></p>
+                </div>
             </div>
 
-            <div class="mt-8 flex justify-center">
-                 <button id="disconnectBtn" class="text-gray-400 hover:text-white px-4 py-2 rounded border border-gray-600 hover:bg-gray-700 transition-colors">
-                    Disconnect
+            <div class="mt-8 flex justify-center pt-2">
+                 <button id="disconnectBtn" class="text-gray-400 hover:text-white px-5 py-2.5 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors text-sm font-medium flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                    Disconnect from OBS
                 </button>
             </div>
         </div>
@@ -127,7 +139,12 @@
 
     <script>
         const obs = new OBSWebSocket();
+        let isConnected = false;
         let manualDisconnect = false;
+        
+        let currentScenes = [];
+        let currentProgramScene = "";
+        let currentPreviewScene = "";
         
         // UI Elements
         const connectionPanel = document.getElementById('connectionPanel');
@@ -139,35 +156,42 @@
         const errorMsg = document.getElementById('errorMsg');
         const statusBadge = document.getElementById('statusBadge');
         const sceneContainer = document.getElementById('sceneContainer');
+        const activeSceneLabel = document.getElementById('activeSceneLabel');
         
         const projectorBtn = document.getElementById('projectorBtn');
         const monitorSelect = document.getElementById('monitorSelect');
+        const mixTypeSelect = document.getElementById('mixTypeSelect');
         const projectorMsg = document.getElementById('projectorMsg');
 
-        const streamBtn = document.getElementById('streamBtn');
-        const recordBtn = document.getElementById('recordBtn');
-        const muteBtn = document.getElementById('muteBtn');
-
-        // Load saved credentials on startup
+        // Load saved credentials & auto-connect on startup if available
         window.addEventListener('DOMContentLoaded', () => {
             const savedAddress = localStorage.getItem('obsAddress');
             const savedPassword = localStorage.getItem('obsPassword');
-            if (savedAddress) obsAddressInput.value = savedAddress;
-            if (savedPassword) obsPasswordInput.value = savedPassword;
+            if (savedAddress) {
+                obsAddressInput.value = savedAddress;
+                if (savedPassword) obsPasswordInput.value = savedPassword;
+                // If a saved address exists and isn't the placeholder, auto-connect immediately
+                if (savedAddress !== '192.168.1.X:4455') {
+                    initiateConnection();
+                }
+            }
         });
 
-        // Helper to update status badge
+        // Helper to update status badge & connection state
         function setStatus(status) {
             statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold border transition-colors';
             if (status === 'connected') {
+                isConnected = true;
                 statusBadge.textContent = 'Connected';
                 statusBadge.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
                 connectionPanel.classList.add('hidden');
                 controlsPanel.classList.remove('hidden');
             } else if (status === 'connecting') {
+                isConnected = false;
                 statusBadge.textContent = 'Connecting...';
                 statusBadge.classList.add('bg-yellow-500/20', 'text-yellow-400', 'border-yellow-500/50');
             } else {
+                isConnected = false;
                 statusBadge.textContent = 'Disconnected';
                 statusBadge.classList.add('bg-red-500/20', 'text-red-400', 'border-red-500/50');
                 connectionPanel.classList.remove('hidden');
@@ -176,57 +200,102 @@
             }
         }
 
-        // Output Status Handlers
-        function updateStreamUI(active) {
-            if (active) {
-                streamBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg><span>Stop Stream</span>';
-                streamBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-red-500 bg-red-600 text-white pulse-red flex flex-col items-center justify-center gap-1 text-sm';
-            } else {
-                streamBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4-4-4 4"/></svg><span>Start Stream</span>';
-                streamBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm';
+        // Render scene buttons with unmistakable high-contrast active state styling
+        function renderScenes() {
+            sceneContainer.innerHTML = '';
+            
+            if (currentProgramScene && activeSceneLabel) {
+                activeSceneLabel.textContent = `Live: ${currentProgramScene}`;
             }
+
+            // Iterate over scenes (reverse order matches OBS default scene list hierarchy)
+            const sceneList = [...currentScenes].reverse();
+            
+            sceneList.forEach(scene => {
+                const sName = typeof scene === 'string' ? scene : scene.sceneName;
+                const isProgram = sName === currentProgramScene;
+                const isPreview = sName === currentPreviewScene && !isProgram;
+                
+                const btn = document.createElement('button');
+                
+                let baseStyle = "relative p-6 rounded-xl text-lg font-bold transition-all border-2 flex flex-col items-start justify-between min-h-[110px] shadow-lg cursor-pointer text-left ";
+                let stateStyle = "";
+                let badgeHTML = "";
+
+                if (isProgram) {
+                    // LIVE / PROGRAM Scene: Bright Red Glow & Border with LIVE badge
+                    stateStyle = "bg-gradient-to-br from-red-600 to-red-700 border-red-400 text-white shadow-xl shadow-red-950/60 ring-4 ring-red-500/40 transform scale-[1.02]";
+                    badgeHTML = `<span class="bg-red-950/90 text-red-100 text-xs font-black uppercase px-2.5 py-1 rounded border border-red-300/80 flex items-center gap-1.5 shadow-sm">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-red-300"></span>
+                        </span>
+                        LIVE
+                    </span>`;
+                } else if (isPreview) {
+                    // PREVIEW Scene (in Studio Mode): Emerald Green styling
+                    stateStyle = "bg-gradient-to-br from-emerald-600 to-emerald-700 border-emerald-400 text-white shadow-xl shadow-emerald-950/60 ring-4 ring-emerald-500/40 transform scale-[1.02]";
+                    badgeHTML = `<span class="bg-emerald-950/90 text-emerald-100 text-xs font-bold uppercase px-2.5 py-1 rounded border border-emerald-300/80 shadow-sm">
+                        PREVIEW
+                    </span>`;
+                } else {
+                    // Inactive Scene: Dark Gray with crisp border
+                    stateStyle = "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-750 hover:border-gray-500 hover:text-white";
+                }
+
+                btn.className = baseStyle + stateStyle;
+                
+                btn.innerHTML = `
+                    <div class="w-full flex justify-between items-start gap-2">
+                        <span class="break-words font-extrabold tracking-wide">${escapeHtml(sName)}</span>
+                        ${badgeHTML}
+                    </div>
+                    <div class="text-xs ${isProgram ? 'text-red-100 font-semibold' : 'text-gray-400'} mt-3">
+                        ${isProgram ? 'Currently showing on audience output' : 'Tap to select scene'}
+                    </div>
+                `;
+
+                // Optimistic scene click handler
+                btn.onclick = () => {
+                    currentProgramScene = sName;
+                    renderScenes();
+                    switchScene(sName);
+                };
+
+                sceneContainer.appendChild(btn);
+            });
         }
 
-        function updateRecordUI(active) {
-            if (active) {
-                recordBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg><span>Stop Record</span>';
-                recordBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-red-500 bg-red-600 text-white pulse-red flex flex-col items-center justify-center gap-1 text-sm';
-            } else {
-                recordBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg><span>Start Record</span>';
-                recordBtn.className = 'py-3 px-2 rounded-lg font-bold border-2 border-gray-600 bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all flex flex-col items-center justify-center gap-1 text-sm';
-            }
+        // Simple HTML escaping helper
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        // Fetch outputs and scenes
+        // Fetch initial state & scene list from OBS
         async function loadInitialState() {
+            if (!isConnected) return;
             try {
-                const { scenes } = await obs.call('GetSceneList');
-                const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
+                const sceneListRes = await obs.call('GetSceneList');
+                currentScenes = sceneListRes.scenes || [];
                 
-                sceneContainer.innerHTML = ''; // Clear container
-                scenes.reverse().forEach(scene => {
-                    const btn = document.createElement('button');
-                    const isActive = scene.sceneName === currentProgramSceneName;
-                    
-                    btn.className = `p-6 rounded-xl text-lg font-bold transition-all border-2 flex items-center justify-center min-h-[100px] shadow-lg
-                        ${isActive 
-                            ? 'bg-blue-600 border-blue-400 text-white transform scale-[1.02]' 
-                            : 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600 hover:border-gray-500'}`;
-                    
-                    btn.textContent = scene.sceneName;
-                    btn.onclick = () => switchScene(scene.sceneName);
-                    sceneContainer.appendChild(btn);
-                });
+                let progName = sceneListRes.currentProgramSceneName;
+                let prevName = sceneListRes.currentPreviewSceneName;
 
-                // Load initial output statuses
-                const streamStatus = await obs.call('GetStreamStatus');
-                updateStreamUI(streamStatus.outputActive);
-                
-                const recordStatus = await obs.call('GetRecordStatus');
-                updateRecordUI(recordStatus.outputActive);
+                if (!progName) {
+                    try {
+                        const currentProg = await obs.call('GetCurrentProgramScene');
+                        progName = currentProg.currentProgramSceneName || currentProg.sceneName;
+                    } catch (e) {
+                        console.warn("Could not fetch current program scene directly", e);
+                    }
+                }
 
+                if (progName) currentProgramScene = progName;
+                if (prevName) currentPreviewScene = prevName;
+
+                renderScenes();
             } catch (err) {
-                console.error("Failed to load initial state", err);
+                console.error("Failed to load initial scene state", err);
             }
         }
 
@@ -235,26 +304,34 @@
             try {
                 await obs.call('SetCurrentProgramScene', { sceneName: sceneName });
             } catch (err) {
-                console.error("Failed to switch scene", err);
+                console.error("Failed to switch scene in OBS", err);
+                // Reload state if error occurred
+                loadInitialState();
             }
         }
 
-        // Fetch available monitors
+        // Fetch available monitors & populate options
         async function loadMonitors() {
+            monitorSelect.innerHTML = '<option value="-1">Windowed Projector (Window)</option>';
             try {
                 const { monitors } = await obs.call('GetMonitorList');
-                monitorSelect.innerHTML = ''; // Clear options
-                
-                monitors.forEach(monitor => {
-                    const option = document.createElement('option');
-                    option.value = monitor.monitorIndex;
-                    const displayName = monitor.monitorName || `${monitor.monitorWidth}x${monitor.monitorHeight}`;
-                    option.textContent = `Index ${monitor.monitorIndex}: ${displayName}`;
-                    monitorSelect.appendChild(option);
-                });
+                if (Array.isArray(monitors) && monitors.length > 0) {
+                    monitors.forEach(monitor => {
+                        const option = document.createElement('option');
+                        option.value = monitor.monitorIndex;
+                        const displayName = monitor.monitorName || `${monitor.monitorWidth}x${monitor.monitorHeight}`;
+                        option.textContent = `Monitor ${monitor.monitorIndex} (${displayName})`;
+                        monitorSelect.appendChild(option);
+                    });
+                } else {
+                    // Standard display fallbacks
+                    monitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
+                    monitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                }
             } catch (err) {
-                console.error("Failed to load monitors", err);
-                monitorSelect.innerHTML = '<option value="0">Monitor 0</option><option value="1">Monitor 1</option>';
+                console.warn("GetMonitorList failed, loading default monitor options", err);
+                monitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
+                monitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
             }
         }
 
@@ -281,7 +358,7 @@
             }).catch(error => {
                 console.error('Connection Error:', error);
                 setStatus('disconnected');
-                errorMsg.textContent = error.message || "Failed to connect. Check IP, Port, and Password.";
+                errorMsg.textContent = error.message || "Failed to connect to OBS. Verify IP address, port 4455, and password.";
                 errorMsg.classList.remove('hidden');
                 connectBtn.disabled = false;
             });
@@ -291,53 +368,34 @@
 
         // Disconnect Button Logic
         disconnectBtn.addEventListener('click', () => {
-            manualDisconnect = true; // Prevents auto-reconnect
+            manualDisconnect = true;
             obs.disconnect();
         });
 
-        // Output Button Listeners
-        streamBtn.addEventListener('click', async () => {
-            try { await obs.call('ToggleStream'); } catch (e) { console.error(e); }
-        });
-        
-        recordBtn.addEventListener('click', async () => {
-            try { await obs.call('ToggleRecord'); } catch (e) { console.error(e); }
-        });
-
-        muteBtn.addEventListener('click', async () => {
-            // Gets all audio inputs and mutes them as a panic button
-            try {
-                const { inputs } = await obs.call('GetInputList');
-                inputs.forEach(async (input) => {
-                    await obs.call('SetInputMute', { inputName: input.inputName, inputMuted: true });
-                });
-                muteBtn.classList.replace('bg-gray-800', 'bg-red-900');
-                muteBtn.classList.replace('border-gray-600', 'border-red-500');
-                muteBtn.querySelector('span').textContent = 'All Muted!';
-                setTimeout(() => {
-                    muteBtn.classList.replace('bg-red-900', 'bg-gray-800');
-                    muteBtn.classList.replace('border-red-500', 'border-gray-600');
-                    muteBtn.querySelector('span').textContent = 'Mute Output';
-                }, 2000);
-            } catch (e) { console.error(e); }
-        });
-
-        // Projector Button Logic
+        // Projector Launch Logic
         projectorBtn.addEventListener('click', async () => {
-            const monitorIndex = parseInt(monitorSelect.value, 10);
+            const monitorVal = parseInt(monitorSelect.value, 10);
+            const monitorIndex = isNaN(monitorVal) ? -1 : monitorVal;
+            const videoMixType = mixTypeSelect.value || 'OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM';
+            
             try {
                 await obs.call('OpenVideoMixProjector', {
-                    videoMixType: 'OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM',
+                    videoMixType: videoMixType,
                     monitorIndex: monitorIndex
                 });
-                projectorMsg.textContent = `Projector launched on monitor ${monitorIndex}!`;
-                projectorMsg.className = "text-sm text-center mt-2 text-green-400";
+                
+                const modeText = monitorIndex === -1 
+                    ? "Windowed Projector" 
+                    : `Fullscreen Projector (Monitor ${monitorIndex})`;
+                    
+                projectorMsg.textContent = `✓ ${modeText} launched successfully!`;
+                projectorMsg.className = "text-sm text-center font-semibold mt-2 text-green-400 bg-green-950/40 p-2.5 rounded border border-green-800/60";
                 projectorMsg.classList.remove('hidden');
-                setTimeout(() => projectorMsg.classList.add('hidden'), 3000);
+                setTimeout(() => projectorMsg.classList.add('hidden'), 5000);
             } catch (err) {
-                console.error("Failed to launch projector", err);
-                projectorMsg.textContent = "Error: " + (err.message || "Could not launch projector");
-                projectorMsg.className = "text-sm text-center mt-2 text-red-400";
+                console.error("Failed to launch projector window", err);
+                projectorMsg.textContent = "Error: " + (err.message || "OBS rejected projector launch command.");
+                projectorMsg.className = "text-sm text-center font-semibold mt-2 text-red-400 bg-red-950/40 p-2.5 rounded border border-red-800/60";
                 projectorMsg.classList.remove('hidden');
             }
         });
@@ -345,27 +403,36 @@
         // OBS Event Listeners
         obs.on('ConnectionClosed', () => {
             setStatus('disconnected');
-            // Auto-Reconnect Logic
             if (!manualDisconnect && localStorage.getItem('obsAddress')) {
-                console.log("Connection lost. Attempting to auto-reconnect in 5 seconds...");
+                console.log("Connection lost. Retrying in 5 seconds...");
                 setTimeout(() => {
-                    if (statusBadge.textContent === 'Disconnected') {
-                        initiateConnection();
-                    }
+                    if (!isConnected) initiateConnection();
                 }, 5000);
             }
         });
 
-        obs.on('CurrentProgramSceneChanged', () => {
-            if (statusBadge.textContent === 'Connected') loadInitialState();
+        // Handle live program scene changes from OBS
+        obs.on('CurrentProgramSceneChanged', (data) => {
+            if (data && (data.sceneName || data.currentProgramSceneName)) {
+                currentProgramScene = data.sceneName || data.currentProgramSceneName;
+                renderScenes();
+            } else if (isConnected) {
+                loadInitialState();
+            }
         });
 
+        // Handle live preview scene changes from OBS (Studio mode)
+        obs.on('CurrentPreviewSceneChanged', (data) => {
+            if (data && (data.sceneName || data.currentPreviewSceneName)) {
+                currentPreviewScene = data.sceneName || data.currentPreviewSceneName;
+                renderScenes();
+            }
+        });
+
+        // Re-fetch scene list if scenes are added/removed/renamed in OBS
         obs.on('SceneListChanged', () => {
-            if (statusBadge.textContent === 'Connected') loadInitialState();
+            if (isConnected) loadInitialState();
         });
-
-        obs.on('StreamStateChanged', (data) => updateStreamUI(data.outputActive));
-        obs.on('RecordStateChanged', (data) => updateRecordUI(data.outputActive));
 
     </script>
 </body>
