@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Church OBS Remote</title>
+    <title>Church OBS Remote & Dual Display Launcher</title>
     
     <!-- PWA / Home Screen App Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,7 +45,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <main class="flex-grow p-4 md:p-8 max-w-4xl mx-auto w-full">
         
         <!-- Connection Panel -->
         <div id="connectionPanel" class="bg-gray-800 rounded-xl p-6 shadow-lg mb-8 border border-gray-700 transition-all">
@@ -74,16 +74,41 @@
             <p id="errorMsg" class="text-red-400 text-sm mt-4 hidden text-center bg-red-950/40 p-3 rounded border border-red-800/60"></p>
         </div>
         
-        <!-- Scene Controls Panel (Hidden until connected) -->
-        <div id="controlsPanel" class="hidden space-y-6">
+        <!-- Controls Panel (Hidden until connected) -->
+        <div id="controlsPanel" class="hidden space-y-8">
             
+            <!-- Studio Mode Control Header & Transition Bar -->
+            <div class="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow-md">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="studioModeToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                        <div>
+                            <span class="font-bold text-gray-200">Studio Mode</span>
+                            <p class="text-xs text-gray-400" id="studioModeHelp">Allows separate Preview (Back of House) & Program (Audience)</p>
+                        </div>
+                    </div>
+
+                    <!-- Cut / Transition Button (Visible when Studio Mode is active) -->
+                    <div id="transitionContainer" class="w-full sm:w-auto">
+                        <button id="transitionBtn" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-red-600 hover:from-emerald-500 hover:to-red-500 text-white font-extrabold px-6 py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 border border-white/20 transition-all transform active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg>
+                            TRANSITION PREVIEW ➔ LIVE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene Selection Section -->
             <div>
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-gray-200 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 8 6 4-6 4Z"/></svg>
                         Scene Selection
                     </h2>
-                    <span id="activeSceneLabel" class="text-xs text-gray-400 font-medium">Select a scene to output</span>
+                    <span id="activeSceneLabel" class="text-xs text-gray-400 font-medium">Select a scene</span>
                 </div>
                 
                 <div id="sceneContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -91,40 +116,104 @@
                 </div>
             </div>
             
-            <!-- Display / Projector Options -->
-            <div class="mt-8 border-t border-gray-700 pt-6">
-                <h2 class="text-lg font-semibold mb-4 text-center text-gray-200 flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-                    Projector & Monitor Controls
-                </h2>
+            <!-- Dual-Display Remote Launcher Controls -->
+            <div class="border-t border-gray-700 pt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-200 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                        Dual Display & Projector Launcher
+                    </h2>
+                </div>
+
+                <!-- Launch All Displays Master Button -->
+                <div class="mb-6">
+                    <button id="launchBothBtn" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-xl flex items-center justify-center gap-3 transition-all transform active:scale-98 border border-purple-400/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        🚀 LAUNCH BOTH DISPLAYS (Audience & Back of House)
+                    </button>
+                </div>
                 
-                <div class="bg-gray-800 rounded-xl p-5 border border-gray-700 space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Audience Display (Screen 1) -->
+                    <div class="bg-gray-800 rounded-xl p-5 border border-red-900/40 shadow-lg space-y-4">
+                        <div class="flex items-center gap-2 border-b border-gray-700 pb-3">
+                            <span class="bg-red-500/20 text-red-400 p-1.5 rounded-lg border border-red-500/40">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                            </span>
+                            <div>
+                                <h3 class="font-bold text-gray-100" id="audienceHeaderTitle">Audience Display</h3>
+                                <p class="text-xs text-gray-400">Live Program Output for congregation</p>
+                            </div>
+                        </div>
+
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Target Display / Mode</label>
-                            <select id="monitorSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-purple-500 font-medium">
-                                <option value="-1">Windowed Projector (Window)</option>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Display Label / Nickname</label>
+                            <input type="text" id="audienceLabelInput" placeholder="e.g. Main Sanctuary Projector" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-500 font-medium">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Target Monitor</label>
+                            <select id="audienceMonitorSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-red-500 font-medium">
+                                <option value="-1">Windowed Projector</option>
                             </select>
                         </div>
+
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Projector Mix Type</label>
-                            <select id="mixTypeSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-purple-500 font-medium">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Output Mix Type</label>
+                            <select id="audienceMixTypeSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-red-500 font-medium">
                                 <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM">Program (Live Output)</option>
                                 <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW">Preview Output</option>
+                                <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW">Multiview Grid</option>
                             </select>
                         </div>
+
+                        <button id="launchAudienceBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow">
+                            Launch Audience Fullscreen
+                        </button>
                     </div>
-                    
-                    <button id="projectorBtn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-                        Launch Projector Window
-                    </button>
-                    
-                    <p class="text-xs text-gray-400 text-center">
-                        <span class="text-purple-400 font-semibold">Note:</span> Projector windows launch on the computer running OBS Studio.
-                    </p>
-                    <p id="projectorMsg" class="text-sm text-center font-semibold mt-2 hidden p-2 rounded"></p>
+
+                    <!-- Back of House Display (Screen 2) -->
+                    <div class="bg-gray-800 rounded-xl p-5 border border-emerald-900/40 shadow-lg space-y-4">
+                        <div class="flex items-center gap-2 border-b border-gray-700 pb-3">
+                            <span class="bg-emerald-500/20 text-emerald-400 p-1.5 rounded-lg border border-emerald-500/40">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </span>
+                            <div>
+                                <h3 class="font-bold text-gray-100" id="bohHeaderTitle">Back of House Display</h3>
+                                <p class="text-xs text-gray-400">Camera preview / multiview for team</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Display Label / Nickname</label>
+                            <input type="text" id="bohLabelInput" placeholder="e.g. Stage Confidence Monitor" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 font-medium">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Target Monitor</label>
+                            <select id="bohMonitorSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500 font-medium">
+                                <option value="-1">Windowed Projector</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Output Mix Type</label>
+                            <select id="bohMixTypeSelect" class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500 font-medium">
+                                <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW">Preview Output (Studio Mode)</option>
+                                <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW">Multiview Grid</option>
+                                <option value="OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM">Program (Duplicate Live)</option>
+                            </select>
+                        </div>
+
+                        <button id="launchBohBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow">
+                            Launch Back of House Fullscreen
+                        </button>
+                    </div>
+
                 </div>
+
+                <p id="projectorMsg" class="text-sm text-center font-semibold mt-4 hidden p-2.5 rounded"></p>
             </div>
 
             <div class="mt-8 flex justify-center pt-2">
@@ -145,6 +234,7 @@
         let currentScenes = [];
         let currentProgramScene = "";
         let currentPreviewScene = "";
+        let isStudioModeEnabled = false;
         
         // UI Elements
         const connectionPanel = document.getElementById('connectionPanel');
@@ -158,24 +248,83 @@
         const sceneContainer = document.getElementById('sceneContainer');
         const activeSceneLabel = document.getElementById('activeSceneLabel');
         
-        const projectorBtn = document.getElementById('projectorBtn');
-        const monitorSelect = document.getElementById('monitorSelect');
-        const mixTypeSelect = document.getElementById('mixTypeSelect');
-        const projectorMsg = document.getElementById('projectorMsg');
+        const studioModeToggle = document.getElementById('studioModeToggle');
+        const transitionBtn = document.getElementById('transitionBtn');
+        const transitionContainer = document.getElementById('transitionContainer');
+        const studioModeHelp = document.getElementById('studioModeHelp');
 
-        // Load saved credentials & auto-connect on startup if available
+        const audienceMonitorSelect = document.getElementById('audienceMonitorSelect');
+        const audienceMixTypeSelect = document.getElementById('audienceMixTypeSelect');
+        const bohMonitorSelect = document.getElementById('bohMonitorSelect');
+        const bohMixTypeSelect = document.getElementById('bohMixTypeSelect');
+        const audienceHeaderTitle = document.getElementById('audienceHeaderTitle');
+        const bohHeaderTitle = document.getElementById('bohHeaderTitle');
+
+        function updateDisplayLabels() {
+            const audLabel = audienceLabelInput ? audienceLabelInput.value.trim() : '';
+            const bohLabel = bohLabelInput ? bohLabelInput.value.trim() : '';
+
+            if (audienceHeaderTitle) {
+                audienceHeaderTitle.textContent = audLabel ? `Audience Display (${audLabel})` : 'Audience Display';
+            }
+            if (bohHeaderTitle) {
+                bohHeaderTitle.textContent = bohLabel ? `Back of House Display (${bohLabel})` : 'Back of House Display';
+            }
+            if (launchAudienceBtn) {
+                launchAudienceBtn.textContent = audLabel ? `Launch ${audLabel} Fullscreen` : 'Launch Audience Fullscreen';
+            }
+            if (launchBohBtn) {
+                launchBohBtn.textContent = bohLabel ? `Launch ${bohLabel} Fullscreen` : 'Launch Back of House Fullscreen';
+            }
+        }
+
+        // Load saved credentials & preferences on startup
         window.addEventListener('DOMContentLoaded', () => {
             const savedAddress = localStorage.getItem('obsAddress');
             const savedPassword = localStorage.getItem('obsPassword');
             if (savedAddress) {
                 obsAddressInput.value = savedAddress;
                 if (savedPassword) obsPasswordInput.value = savedPassword;
-                // If a saved address exists and isn't the placeholder, auto-connect immediately
                 if (savedAddress !== '192.168.1.X:4455') {
                     initiateConnection();
                 }
             }
+
+            // Load saved monitor selections, mix types & custom labels if available
+            const savedAudienceMon = localStorage.getItem('audienceMonitor');
+            const savedAudienceMix = localStorage.getItem('audienceMixType');
+            const savedBohMon = localStorage.getItem('bohMonitor');
+            const savedBohMix = localStorage.getItem('bohMixType');
+            const savedAudienceLabel = localStorage.getItem('audienceLabel');
+            const savedBohLabel = localStorage.getItem('bohLabel');
+
+            if (savedAudienceMon !== null) audienceMonitorSelect.value = savedAudienceMon;
+            if (savedAudienceMix !== null && audienceMixTypeSelect) audienceMixTypeSelect.value = savedAudienceMix;
+            if (savedBohMon !== null) bohMonitorSelect.value = savedBohMon;
+            if (savedBohMix !== null) bohMixTypeSelect.value = savedBohMix;
+            if (savedAudienceLabel !== null && audienceLabelInput) audienceLabelInput.value = savedAudienceLabel;
+            if (savedBohLabel !== null && bohLabelInput) bohLabelInput.value = savedBohLabel;
+
+            updateDisplayLabels();
         });
+
+        // Save monitor preferences on change
+        audienceMonitorSelect.addEventListener('change', () => localStorage.setItem('audienceMonitor', audienceMonitorSelect.value));
+        if (audienceMixTypeSelect) audienceMixTypeSelect.addEventListener('change', () => localStorage.setItem('audienceMixType', audienceMixTypeSelect.value));
+        bohMonitorSelect.addEventListener('change', () => localStorage.setItem('bohMonitor', bohMonitorSelect.value));
+        bohMixTypeSelect.addEventListener('change', () => localStorage.setItem('bohMixType', bohMixTypeSelect.value));
+        if (audienceLabelInput) {
+            audienceLabelInput.addEventListener('input', () => {
+                localStorage.setItem('audienceLabel', audienceLabelInput.value);
+                updateDisplayLabels();
+            });
+        }
+        if (bohLabelInput) {
+            bohLabelInput.addEventListener('input', () => {
+                localStorage.setItem('bohLabel', bohLabelInput.value);
+                updateDisplayLabels();
+            });
+        }
 
         // Helper to update status badge & connection state
         function setStatus(status) {
@@ -186,6 +335,7 @@
                 statusBadge.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/50');
                 connectionPanel.classList.add('hidden');
                 controlsPanel.classList.remove('hidden');
+                updateDisplayLabels();
             } else if (status === 'connecting') {
                 isConnected = false;
                 statusBadge.textContent = 'Connecting...';
@@ -200,12 +350,30 @@
             }
         }
 
+        // Render Studio Mode UI state
+        function updateStudioModeUI() {
+            studioModeToggle.checked = isStudioModeEnabled;
+            if (isStudioModeEnabled) {
+                transitionContainer.classList.remove('hidden');
+                studioModeHelp.textContent = 'Active: Preview staged on BOH screen, Program live on Audience screen';
+                studioModeHelp.className = 'text-xs text-emerald-400 font-medium';
+            } else {
+                transitionContainer.classList.add('hidden');
+                studioModeHelp.textContent = 'Disabled: Tapping a scene puts it directly Live on Audience display';
+                studioModeHelp.className = 'text-xs text-gray-400';
+            }
+        }
+
         // Render scene buttons with unmistakable high-contrast active state styling
         function renderScenes() {
             sceneContainer.innerHTML = '';
             
-            if (currentProgramScene && activeSceneLabel) {
-                activeSceneLabel.textContent = `Live: ${currentProgramScene}`;
+            if (activeSceneLabel) {
+                if (isStudioModeEnabled) {
+                    activeSceneLabel.textContent = `Live: ${currentProgramScene || 'None'} | Preview: ${currentPreviewScene || 'None'}`;
+                } else {
+                    activeSceneLabel.textContent = `Live Output: ${currentProgramScene || 'None'}`;
+                }
             }
 
             // Iterate over scenes (reverse order matches OBS default scene list hierarchy)
@@ -214,18 +382,25 @@
             sceneList.forEach(scene => {
                 const sName = typeof scene === 'string' ? scene : scene.sceneName;
                 const isProgram = sName === currentProgramScene;
-                const isPreview = sName === currentPreviewScene && !isProgram;
+                const isPreview = sName === currentPreviewScene && isStudioModeEnabled;
                 
-                const btn = document.createElement('button');
+                const btn = document.createElement('div');
                 
-                let baseStyle = "relative p-6 rounded-xl text-lg font-bold transition-all border-2 flex flex-col items-start justify-between min-h-[110px] shadow-lg cursor-pointer text-left ";
+                let baseStyle = "relative p-5 rounded-xl transition-all border-2 flex flex-col justify-between min-h-[120px] shadow-lg text-left ";
                 let stateStyle = "";
-                let badgeHTML = "";
+                let badgesHTML = "";
 
-                if (isProgram) {
+                if (isProgram && isPreview) {
+                    // Both Program and Preview
+                    stateStyle = "bg-gradient-to-br from-red-700 via-purple-800 to-emerald-700 border-yellow-400 text-white shadow-xl ring-4 ring-yellow-500/40";
+                    badgesHTML = `<div class="flex gap-1.5">
+                        <span class="bg-red-950/90 text-red-100 text-xs font-black uppercase px-2 py-0.5 rounded border border-red-300 flex items-center gap-1">LIVE</span>
+                        <span class="bg-emerald-950/90 text-emerald-100 text-xs font-black uppercase px-2 py-0.5 rounded border border-emerald-300">PREVIEW</span>
+                    </div>`;
+                } else if (isProgram) {
                     // LIVE / PROGRAM Scene: Bright Red Glow & Border with LIVE badge
-                    stateStyle = "bg-gradient-to-br from-red-600 to-red-700 border-red-400 text-white shadow-xl shadow-red-950/60 ring-4 ring-red-500/40 transform scale-[1.02]";
-                    badgeHTML = `<span class="bg-red-950/90 text-red-100 text-xs font-black uppercase px-2.5 py-1 rounded border border-red-300/80 flex items-center gap-1.5 shadow-sm">
+                    stateStyle = "bg-gradient-to-br from-red-600 to-red-700 border-red-400 text-white shadow-xl shadow-red-950/60 ring-4 ring-red-500/40 transform scale-[1.01]";
+                    badgesHTML = `<span class="bg-red-950/90 text-red-100 text-xs font-black uppercase px-2.5 py-1 rounded border border-red-300/80 flex items-center gap-1.5 shadow-sm">
                         <span class="relative flex h-2 w-2">
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                           <span class="relative inline-flex rounded-full h-2 w-2 bg-red-300"></span>
@@ -234,8 +409,8 @@
                     </span>`;
                 } else if (isPreview) {
                     // PREVIEW Scene (in Studio Mode): Emerald Green styling
-                    stateStyle = "bg-gradient-to-br from-emerald-600 to-emerald-700 border-emerald-400 text-white shadow-xl shadow-emerald-950/60 ring-4 ring-emerald-500/40 transform scale-[1.02]";
-                    badgeHTML = `<span class="bg-emerald-950/90 text-emerald-100 text-xs font-bold uppercase px-2.5 py-1 rounded border border-emerald-300/80 shadow-sm">
+                    stateStyle = "bg-gradient-to-br from-emerald-600 to-emerald-700 border-emerald-400 text-white shadow-xl shadow-emerald-950/60 ring-4 ring-emerald-500/40 transform scale-[1.01]";
+                    badgesHTML = `<span class="bg-emerald-950/90 text-emerald-100 text-xs font-bold uppercase px-2.5 py-1 rounded border border-emerald-300/80 shadow-sm">
                         PREVIEW
                     </span>`;
                 } else {
@@ -245,22 +420,66 @@
 
                 btn.className = baseStyle + stateStyle;
                 
+                let actionsHTML = "";
+                if (isStudioModeEnabled) {
+                    actionsHTML = `
+                        <div class="mt-4 pt-3 border-t border-white/10 flex gap-2 w-full">
+                            <button class="stage-btn flex-1 bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-bold py-1.5 px-2 rounded border border-emerald-400/40 transition-colors text-center">
+                                Stage Preview
+                            </button>
+                            <button class="live-btn flex-1 bg-red-600/80 hover:bg-red-500 text-white text-xs font-bold py-1.5 px-2 rounded border border-red-400/40 transition-colors text-center">
+                                Go Live
+                            </button>
+                        </div>
+                    `;
+                }
+
                 btn.innerHTML = `
                     <div class="w-full flex justify-between items-start gap-2">
-                        <span class="break-words font-extrabold tracking-wide">${escapeHtml(sName)}</span>
-                        ${badgeHTML}
+                        <span class="break-words font-extrabold text-lg tracking-wide">${escapeHtml(sName)}</span>
+                        ${badgesHTML}
                     </div>
-                    <div class="text-xs ${isProgram ? 'text-red-100 font-semibold' : 'text-gray-400'} mt-3">
-                        ${isProgram ? 'Currently showing on audience output' : 'Tap to select scene'}
+                    <div class="text-xs ${isProgram ? 'text-red-100 font-semibold' : 'text-gray-400'} mt-2">
+                        ${isProgram ? 'Showing on Audience output' : (isPreview ? 'Staged on Back of House output' : 'Tap card to select')}
                     </div>
+                    ${actionsHTML}
                 `;
 
-                // Optimistic scene click handler
-                btn.onclick = () => {
-                    currentProgramScene = sName;
-                    renderScenes();
-                    switchScene(sName);
-                };
+                // Setup Click Handlers
+                if (isStudioModeEnabled) {
+                    const stageBtn = btn.querySelector('.stage-btn');
+                    const liveBtn = btn.querySelector('.live-btn');
+                    
+                    if (stageBtn) {
+                        stageBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            currentPreviewScene = sName;
+                            renderScenes();
+                            setPreviewScene(sName);
+                        };
+                    }
+                    if (liveBtn) {
+                        liveBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            currentProgramScene = sName;
+                            renderScenes();
+                            setProgramScene(sName);
+                        };
+                    }
+                    // Default card click stages to preview in Studio Mode
+                    btn.onclick = () => {
+                        currentPreviewScene = sName;
+                        renderScenes();
+                        setPreviewScene(sName);
+                    };
+                } else {
+                    // Single Mode: Card click switches program directly
+                    btn.onclick = () => {
+                        currentProgramScene = sName;
+                        renderScenes();
+                        setProgramScene(sName);
+                    };
+                }
 
                 sceneContainer.appendChild(btn);
             });
@@ -275,6 +494,16 @@
         async function loadInitialState() {
             if (!isConnected) return;
             try {
+                // Fetch Studio Mode status
+                try {
+                    const studioRes = await obs.call('GetStudioModeEnabled');
+                    isStudioModeEnabled = studioRes.studioModeEnabled || false;
+                    updateStudioModeUI();
+                } catch (e) {
+                    console.warn("Could not fetch Studio Mode status", e);
+                }
+
+                // Fetch scene list
                 const sceneListRes = await obs.call('GetSceneList');
                 currentScenes = sceneListRes.scenes || [];
                 
@@ -290,6 +519,15 @@
                     }
                 }
 
+                if (isStudioModeEnabled && !prevName) {
+                    try {
+                        const currentPrev = await obs.call('GetCurrentPreviewScene');
+                        prevName = currentPrev.currentPreviewSceneName || currentPrev.sceneName;
+                    } catch (e) {
+                        console.warn("Could not fetch current preview scene directly", e);
+                    }
+                }
+
                 if (progName) currentProgramScene = progName;
                 if (prevName) currentPreviewScene = prevName;
 
@@ -299,39 +537,90 @@
             }
         }
 
-        // Switch the active scene in OBS
-        async function switchScene(sceneName) {
+        // Scene Switching Helpers
+        async function setProgramScene(sceneName) {
             try {
                 await obs.call('SetCurrentProgramScene', { sceneName: sceneName });
             } catch (err) {
-                console.error("Failed to switch scene in OBS", err);
-                // Reload state if error occurred
+                console.error("Failed to set program scene in OBS", err);
                 loadInitialState();
             }
         }
 
+        async function setPreviewScene(sceneName) {
+            try {
+                await obs.call('SetCurrentPreviewScene', { sceneName: sceneName });
+            } catch (err) {
+                console.error("Failed to set preview scene in OBS", err);
+                loadInitialState();
+            }
+        }
+
+        // Studio Mode Toggle Handler
+        studioModeToggle.addEventListener('change', async () => {
+            const targetState = studioModeToggle.checked;
+            try {
+                await obs.call('SetStudioModeEnabled', { studioModeEnabled: targetState });
+                isStudioModeEnabled = targetState;
+                updateStudioModeUI();
+                renderScenes();
+            } catch (err) {
+                console.error("Failed to toggle Studio Mode", err);
+                studioModeToggle.checked = isStudioModeEnabled;
+            }
+        });
+
+        // Trigger Studio Mode Transition (Cut / Fade)
+        transitionBtn.addEventListener('click', async () => {
+            try {
+                await obs.call('TriggerStudioModeTransition');
+            } catch (err) {
+                console.error("Failed to trigger Studio Mode transition", err);
+            }
+        });
+
         // Fetch available monitors & populate options
         async function loadMonitors() {
-            monitorSelect.innerHTML = '<option value="-1">Windowed Projector (Window)</option>';
+            audienceMonitorSelect.innerHTML = '<option value="-1">Windowed Projector (Window)</option>';
+            bohMonitorSelect.innerHTML = '<option value="-1">Windowed Projector (Window)</option>';
+            
             try {
                 const { monitors } = await obs.call('GetMonitorList');
                 if (Array.isArray(monitors) && monitors.length > 0) {
                     monitors.forEach(monitor => {
-                        const option = document.createElement('option');
-                        option.value = monitor.monitorIndex;
                         const displayName = monitor.monitorName || `${monitor.monitorWidth}x${monitor.monitorHeight}`;
-                        option.textContent = `Monitor ${monitor.monitorIndex} (${displayName})`;
-                        monitorSelect.appendChild(option);
+                        const optText = `Monitor ${monitor.monitorIndex} (${displayName})`;
+                        
+                        audienceMonitorSelect.appendChild(new Option(optText, monitor.monitorIndex));
+                        bohMonitorSelect.appendChild(new Option(optText, monitor.monitorIndex));
                     });
+
+                    // Set intelligent default monitor indices if user hasn't saved custom preferences
+                    if (!localStorage.getItem('audienceMonitor') && monitors.length > 0) {
+                        audienceMonitorSelect.value = monitors[0].monitorIndex;
+                    }
+                    if (!localStorage.getItem('bohMonitor') && monitors.length > 1) {
+                        bohMonitorSelect.value = monitors[1].monitorIndex;
+                    } else if (!localStorage.getItem('bohMonitor') && monitors.length === 1) {
+                        bohMonitorSelect.value = monitors[0].monitorIndex;
+                    }
                 } else {
                     // Standard display fallbacks
-                    monitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
-                    monitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                    audienceMonitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
+                    audienceMonitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                    bohMonitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
+                    bohMonitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                    if (!localStorage.getItem('audienceMonitor')) audienceMonitorSelect.value = "0";
+                    if (!localStorage.getItem('bohMonitor')) bohMonitorSelect.value = "1";
                 }
             } catch (err) {
                 console.warn("GetMonitorList failed, loading default monitor options", err);
-                monitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
-                monitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                audienceMonitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
+                audienceMonitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                bohMonitorSelect.appendChild(new Option("Monitor 0 (Fullscreen)", "0"));
+                bohMonitorSelect.appendChild(new Option("Monitor 1 (Fullscreen)", "1"));
+                if (!localStorage.getItem('audienceMonitor')) audienceMonitorSelect.value = "0";
+                if (!localStorage.getItem('bohMonitor')) bohMonitorSelect.value = "1";
             }
         }
 
@@ -372,31 +661,56 @@
             obs.disconnect();
         });
 
-        // Projector Launch Logic
-        projectorBtn.addEventListener('click', async () => {
-            const monitorVal = parseInt(monitorSelect.value, 10);
-            const monitorIndex = isNaN(monitorVal) ? -1 : monitorVal;
-            const videoMixType = mixTypeSelect.value || 'OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM';
-            
+        // Projector Helper Function
+        async function openProjector(videoMixType, monitorVal) {
+            const monitorIndex = parseInt(monitorVal, 10);
+            return obs.call('OpenVideoMixProjector', {
+                videoMixType: videoMixType,
+                monitorIndex: isNaN(monitorIndex) ? -1 : monitorIndex
+            });
+        }
+
+        function showProjectorStatus(msg, isError = false) {
+            projectorMsg.textContent = msg;
+            projectorMsg.className = `text-sm text-center font-semibold mt-4 p-2.5 rounded border ${
+                isError 
+                    ? 'text-red-400 bg-red-950/40 border-red-800/60' 
+                    : 'text-green-400 bg-green-950/40 border-green-800/60'
+            }`;
+            projectorMsg.classList.remove('hidden');
+            setTimeout(() => projectorMsg.classList.add('hidden'), 5000);
+        }
+
+        // Launch Audience Display
+        launchAudienceBtn.addEventListener('click', async () => {
+            const mixType = audienceMixTypeSelect ? audienceMixTypeSelect.value : 'OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM';
             try {
-                await obs.call('OpenVideoMixProjector', {
-                    videoMixType: videoMixType,
-                    monitorIndex: monitorIndex
-                });
-                
-                const modeText = monitorIndex === -1 
-                    ? "Windowed Projector" 
-                    : `Fullscreen Projector (Monitor ${monitorIndex})`;
-                    
-                projectorMsg.textContent = `✓ ${modeText} launched successfully!`;
-                projectorMsg.className = "text-sm text-center font-semibold mt-2 text-green-400 bg-green-950/40 p-2.5 rounded border border-green-800/60";
-                projectorMsg.classList.remove('hidden');
-                setTimeout(() => projectorMsg.classList.add('hidden'), 5000);
+                await openProjector(mixType, audienceMonitorSelect.value);
+                showProjectorStatus(`✓ Audience Display launched on Monitor ${audienceMonitorSelect.value}!`);
             } catch (err) {
-                console.error("Failed to launch projector window", err);
-                projectorMsg.textContent = "Error: " + (err.message || "OBS rejected projector launch command.");
-                projectorMsg.className = "text-sm text-center font-semibold mt-2 text-red-400 bg-red-950/40 p-2.5 rounded border border-red-800/60";
-                projectorMsg.classList.remove('hidden');
+                showProjectorStatus("Failed to launch Audience Display: " + (err.message || "OBS Error"), true);
+            }
+        });
+
+        // Launch Back of House Display
+        launchBohBtn.addEventListener('click', async () => {
+            try {
+                await openProjector(bohMixTypeSelect.value, bohMonitorSelect.value);
+                showProjectorStatus(`✓ Back of House Display launched on Monitor ${bohMonitorSelect.value}!`);
+            } catch (err) {
+                showProjectorStatus("Failed to launch Back of House Display: " + (err.message || "OBS Error"), true);
+            }
+        });
+
+        // Launch Both Displays Simultaneously
+        launchBothBtn.addEventListener('click', async () => {
+            const audMix = audienceMixTypeSelect ? audienceMixTypeSelect.value : 'OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM';
+            try {
+                await openProjector(audMix, audienceMonitorSelect.value);
+                await openProjector(bohMixTypeSelect.value, bohMonitorSelect.value);
+                showProjectorStatus(`✓ Both Displays launched successfully! (Audience: Mon ${audienceMonitorSelect.value}, BOH: Mon ${bohMonitorSelect.value})`);
+            } catch (err) {
+                showProjectorStatus("Error launching dual displays: " + (err.message || "OBS Error"), true);
             }
         });
 
@@ -408,6 +722,15 @@
                 setTimeout(() => {
                     if (!isConnected) initiateConnection();
                 }, 5000);
+            }
+        });
+
+        // Handle Studio Mode toggled from OBS Studio host
+        obs.on('StudioModeStateChanged', (data) => {
+            if (data && typeof data.studioModeEnabled === 'boolean') {
+                isStudioModeEnabled = data.studioModeEnabled;
+                updateStudioModeUI();
+                renderScenes();
             }
         });
 
